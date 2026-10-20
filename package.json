@@ -1,10 +1,11 @@
 {
-  "name": "proxy-serverless",
-  "version": "1.0.0",
-  "description": "Proxy for external API to solve CORS",
-  "main": "api/breaches.js",
-  "dependencies": {
-    "node-fetch": "3.3.2" 
-    
+  "name": "trustwatch-proxy",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Funciones serverless de TrustWatch (Vercel): Google Safe Browsing y análisis de cabeceras HTTP",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node tests/core.test.cjs && node tests/api.test.mjs"
   }
 }

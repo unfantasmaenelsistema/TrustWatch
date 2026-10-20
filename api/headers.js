@@ -1,108 +1,65 @@
-// api/headers.js
-// Proxy para escanear cabeceras de seguridad de una URL
-// Verifica HSTS, CSP, X-Frame-Options, etc.
+// api/headers.js — analiza las cabeceras de seguridad de una URL pública.
+// Bloquea redes internas (también tras redirecciones) y corta a los 8 s.
+import { cors, parsePublicUrl, assertPublicHost } from './_security.js';
+
+const HEADERS = {
+  'Strict-Transport-Security': { required: true },
+  'Content-Security-Policy': { required: true },
+  'X-Content-Type-Options': { required: true },
+  'X-Frame-Options': { required: true },
+  'Referrer-Policy': { required: false },
+  'Permissions-Policy': { required: false },
+};
+
+async function fetchFollowing(url, signal) {
+  let current = url;
+  for (let i = 0; i < 5; i++) {
+    await assertPublicHost(current.hostname);
+    const res = await fetch(current, {
+      method: 'GET',
+      redirect: 'manual',
+      signal,
+      headers: { 'User-Agent': 'TrustWatch-HeaderCheck/2.0 (+https://github.com/unfantasmaenelsistema/TrustWatch)' },
+    });
+    const loc = res.headers.get('location');
+    if (res.status >= 300 && res.status < 400 && loc) {
+      const next = parsePublicUrl(new URL(loc, current).href);
+      if (!next) throw new Error('Invalid redirect');
+      current = next;
+      continue;
+    }
+    if (res.body && res.body.cancel) res.body.cancel().catch(() => {});
+    return { res, finalUrl: current.href, redirected: i > 0 };
+  }
+  throw new Error('Too many redirects');
+}
 
 export default async (req, res) => {
-    
-    // Configuración CORS
-    res.setHeader('Access-Control-Allow-Origin', '*'); 
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (cors(req, res, 'GET')) return;
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const url = parsePublicUrl(req.query.url);
+  if (!url) return res.status(400).json({ error: 'Invalid url' });
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const { res: r, finalUrl, redirected } = await fetchFollowing(url, ctrl.signal);
+    let score = 0;
+    const results = {};
+    for (const [name, cfg] of Object.entries(HEADERS)) {
+      const value = r.headers.get(name);
+      let status = value ? 'PRESENT' : cfg.required ? 'MISSING' : 'OPTIONAL_MISSING';
+      if (name === 'X-Content-Type-Options' && value && value.trim().toLowerCase() !== 'nosniff') status = 'MISCONFIGURED';
+      if (name === 'X-Frame-Options' && value && !['deny', 'sameorigin'].includes(value.trim().toLowerCase())) status = 'MISCONFIGURED';
+      if (name === 'Strict-Transport-Security' && value && !/max-age=\s*[1-9]/i.test(value)) status = 'MISCONFIGURED';
+      if (cfg.required && status === 'PRESENT') score++;
+      results[name] = { status, value: value ? value.slice(0, 1000) : 'N/A' };
     }
-    
-    // La URL debe venir como parámetro de consulta (query parameter)
-    const url = req.query.url; 
-
-    if (!url) {
-        return res.status(400).json({ error: "Missing url query parameter." });
-    }
-    
-    // Nos aseguramos de que la URL tenga un protocolo para la petición fetch
-    let fullUrl = url.startsWith('http') ? url : `https://${url}`;
-
-    try {
-        // Hacemos una petición HEAD o GET con el método 'manual' para no seguir redirecciones infinitas
-        // Optamos por GET con un timeout bajo para obtener la respuesta final, pero solo procesamos cabeceras.
-        const response = await fetch(fullUrl, {
-            method: 'GET',
-            redirect: 'follow',
-            timeout: 5000 // 5 segundos de timeout
-        });
-        
-        // 1. Obtener las cabeceras de respuesta
-        const headers = response.headers;
-        
-        // 2. Definir las cabeceras de seguridad a buscar
-        const securityHeaders = {
-            'Strict-Transport-Security': { required: true, description: 'Fuerza HTTPS después de la primera visita.' },
-            'Content-Security-Policy': { required: true, description: 'Previene la inyección de código (XSS) y Clickjacking.' },
-            'X-Content-Type-Options': { required: true, description: 'Previene el "MIME-type sniffing". Debe ser "nosniff".' },
-            'X-Frame-Options': { required: true, description: 'Previene Clickjacking. Debe ser "DENY" o "SAMEORIGIN".' },
-            'Referrer-Policy': { required: false, description: 'Controla qué información se envía con las peticiones externas.' },
-            'Permissions-Policy': { required: false, description: 'Reemplaza a Feature-Policy para controlar el acceso a APIs del navegador.' }
-        };
-        
-        let headerResults = {};
-        let score = 0;
-        const totalRequired = 4; // HSTS, CSP, X-Content-Type-Options, X-Frame-Options
-
-        // 3. Analizar cada cabecera
-        for (const [key, value] of Object.entries(securityHeaders)) {
-            const headerValue = headers.get(key.toLowerCase());
-            
-            if (headerValue) {
-                // Cabecera encontrada
-                headerResults[key] = {
-                    status: 'PRESENT',
-                    value: headerValue,
-                    description: value.description
-                };
-                if (value.required) score++;
-                
-                // Verificaciones de valor específicas
-                if (key === 'X-Content-Type-Options' && headerValue.toLowerCase() !== 'nosniff') {
-                    headerResults[key].status = 'MISCONFIGURED';
-                    if (value.required) score--; // Restar si estaba mal configurada
-                }
-                
-                if (key === 'X-Frame-Options' && !['deny', 'sameorigin'].includes(headerValue.toLowerCase())) {
-                    headerResults[key].status = 'MISCONFIGURED';
-                    if (value.required) score--; // Restar si estaba mal configurada
-                }
-            } else if (value.required) {
-                // Cabecera faltante
-                headerResults[key] = {
-                    status: 'MISSING',
-                    value: 'N/A',
-                    description: value.description
-                };
-            } else {
-                // Cabecera opcional faltante
-                 headerResults[key] = {
-                    status: 'OPTIONAL_MISSING',
-                    value: 'N/A',
-                    description: value.description
-                };
-            }
-        }
-        
-        // 4. Calcular el porcentaje de seguridad
-        const securityPercentage = Math.round((score / totalRequired) * 100);
-        
-        res.status(200).json({ 
-            url: fullUrl,
-            status: response.status,
-            ok: response.ok,
-            redirected: response.redirected,
-            results: headerResults,
-            score: securityPercentage 
-        });
-
-    } catch (error) {
-        console.error("Proxy Network/Execution Error:", error);
-        res.status(500).json({ error: "Proxy failed to execute the request or network error occurred.", details: error.message });
-    }
+    res.status(200).json({ url: finalUrl, status: r.status, redirected, results, score: Math.round((score / 4) * 100) });
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Timeout' : e.message === 'Host not allowed' ? 'Host not allowed' : 'Could not reach the site';
+    res.status(502).json({ error: msg });
+  } finally {
+    clearTimeout(timer);
+  }
 };

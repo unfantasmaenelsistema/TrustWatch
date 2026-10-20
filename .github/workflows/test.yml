@@ -1,0 +1,22 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pruebas de core.js y de las funciones de api/
+        run: npm test
+      - name: Sintaxis de los scripts
+        run: for f in js/core.js js/app.js js/i18n.js js/boot.js; do node --check "$f"; done
