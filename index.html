@@ -1,1100 +1,174 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Herramienta de Seguridad y Utilidades</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.3/bundle/libphonenumber-js.min.js"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7fafc; /* Gris muy claro */
-        }
-        .container-card {
-            max-width: 900px; /* Más ancho para acomodar 8 pestañas */
-        }
-        /* Estilos para el indicador de carga */
-        .loader {
-            border-top-color: #3b82f6;
-            -webkit-animation: spin 1s ease-in-out infinite;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .tab-button.active {
-            background-color: #10b981; /* green-500 */
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4), 0 2px 4px -1px rgba(16, 185, 129, 0.2);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrustWatch — Comprobaciones de seguridad</title>
+  <meta name="description" content="¿Tu correo está en alguna filtración? ¿Es segura esa web? Brechas, contraseñas, URL, cabeceras HTTP, dominio, DNS, IP y teléfono en una sola herramienta gratuita.">
+  <meta name="theme-color" content="#0b0d14">
+  <meta property="og:title" content="TrustWatch — Comprobaciones de seguridad">
+  <meta property="og:description" content="Brechas, contraseñas, URL peligrosas, cabeceras HTTP, dominio, DNS, IP y teléfono.">
+  <meta property="og:image" content="img/og.png">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/boot.js"></script>
 </head>
-<body class="p-4 md:p-8 flex items-center justify-center min-h-screen bg-gray-100">
-    <div id="app" class="container-card w-full bg-white p-6 md:p-10 rounded-xl shadow-2xl border border-gray-200">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">
-            <svg class="inline w-8 h-8 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-    </svg> Herramienta de Seguridad y Utilidades 🐧
-        </h1>
-        <p class="text-center text-gray-500 mb-6">
-            Elige una opción para verificar información de seguridad, red y credenciales.
-        </p>
-        <div class="flex flex-wrap justify-center mb-6 bg-gray-200 p-1 rounded-xl">
-            <button id="tabEmail" onclick="changeTab('email')" 
-                    class="tab-button active flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                📧 Brechas
-            </button>
-            <button id="tabPhone" onclick="changeTab('phone')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                📱 Teléfono
-            </button>
-            <button id="tabDomain" onclick="changeTab('domain')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                🌐 Dominio
-            </button>
-            <button id="tabIP" onclick="changeTab('ip')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                📍 IP Geoloc
-            </button>
-            <button id="tabDns" onclick="changeTab('dns')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                📡 DNS Lookup
-            </button>
-            <button id="tabPassword" onclick="changeTab('password')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                🔑 Contraseña
-            </button>
-            <button id="tabSafe" onclick="changeTab('safe')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                🛡️ Seguridad Web
-            </button>
-            <button id="tabHeaders" onclick="changeTab('headers')" 
-                    class="tab-button flex-1 p-2 text-xs sm:text-sm font-semibold text-center rounded-lg transition duration-200 ease-in-out text-gray-700 hover:bg-green-500 hover:text-white min-w-[33%] sm:min-w-0">
-                🔒 Cabeceras HTTP
-            </button>
-        </div>
-        
-        <div id="tabContentEmail" data-tab-content="email">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="email" id="emailInput" placeholder="Introduce email a comprobar (ej: usuario@dominio.com)"
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                       required>
-                <button id="searchButtonEmail" onclick="checkBreaches()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                    <span id="buttonTextEmail">Comprobar Brechas</span>
-                    <div id="loaderEmail" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        <div id="tabContentPhone" data-tab-content="phone" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="tel" id="phoneInput" placeholder="Ej: +34 600 123 456 (incluye código de país)"
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                       required>
-                <button id="searchButtonPhone" onclick="checkPhone()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                    <span id="buttonTextPhone">Validar Teléfono</span>
-                    <div id="loaderPhone" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        <div id="tabContentDomain" data-tab-content="domain" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="domainInput" placeholder="Introduce el dominio (ej: google.com)"
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                       required>
-                <button id="searchButtonDomain" onclick="checkDomainInfo()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                    <span id="buttonTextDomain">Validar Formato</span>
-                    <div id="loaderDomain" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        <div id="tabContentIP" data-tab-content="ip" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="ipInput" placeholder="Introduce IP (ej: 8.8.8.8) o déjalo vacío para la tuya"
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                <button id="searchButtonIP" onclick="checkIPGeoloc()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                    <span id="buttonTextIP">Geolocalizar IP</span>
-                    <div id="loaderIP" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        <div id="tabContentDns" data-tab-content="dns" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="dnsInput" placeholder="Introduce el dominio (ej: ejemplo.com)"
-                       class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 flex-grow"
-                       required>
-                <select id="dnsTypeSelect"
-                         class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto">
-                    <option value="A">A (Dirección IPv4)</option>
-                    <option value="AAAA">AAAA (Dirección IPv6)</option>
-                    <option value="MX">MX (Servidor de Correo)</option>
-                    <option value="TXT">TXT (Texto/Verificación)</option>
-                    <option value="CNAME">CNAME (Alias)</option>
-                    <option value="NS">NS (Servidor de Nombres)</option>
-                </select>
-                <button id="searchButtonDns" onclick="checkDnsRecords()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center w-full sm:w-auto">
-                    <span id="buttonTextDns">Buscar Registros DNS</span>
-                    <div id="loaderDns" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        <div id="tabContentPassword" data-tab-content="password" class="hidden">
-            <div class="space-y-6">
-                <div class="p-6 bg-gray-50 rounded-xl border border-gray-200 shadow-inner">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Generador de Contraseñas Seguras</h2>
-                    <div class="flex flex-col md:flex-row gap-4 mb-4 items-center">
-                        <input type="number" id="passLength" value="16" min="8" max="64"
-                            class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-20 text-center"
-                            title="Longitud">
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="passUppercase" checked class="form-checkbox text-indigo-600 rounded"><span>Mayúsculas</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="passLowercase" checked class="form-checkbox text-indigo-600 rounded"><span>Minúsculas</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="passNumbers" checked class="form-checkbox text-indigo-600 rounded"><span>Números</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="passSymbols" checked class="form-checkbox text-indigo-600 rounded"><span>Símbolos</span></label>
-                    </div>
-                    <div class="flex gap-4">
-                        <button onclick="generatePassword()"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                            Generar Nueva
-                        </button>
-                        <input type="text" id="generatedPassword" readonly placeholder="Contraseña Generada"
-                            class="flex-grow p-3 border border-gray-300 rounded-lg bg-white font-mono text-gray-800">
-                        <button onclick="copyToClipboard('generatedPassword')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out" title="Copiar">
-                            📋
-                        </button>
-                    </div>
-                </div>
-                <div class="p-6 bg-gray-50 rounded-xl border border-gray-200 shadow-inner">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Evaluador de Fuerza de Contraseña</h2>
-                    <input type="password" id="passwordStrengthInput" placeholder="Introduce tu contraseña para verificar su fuerza"
-                        oninput="checkPasswordStrength()"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">
-                    <div id="strengthBar" class="h-2 rounded-full mb-2 bg-gray-300">
-                        <div id="strengthIndicator" class="h-2 rounded-full transition-all duration-500" style="width: 0%;"></div>
-                    </div>
-                    <p id="strengthText" class="text-sm font-semibold text-gray-600"></p>
-                </div>
-            </div>
-        </div>
+<body>
+  <header class="top">
+    <a class="brand" href="https://www.unfantasmaenelsistema.com" target="_blank" rel="noopener noreferrer" data-i18n-title="brand_title">
+      <img src="img/logo.png" alt="Un fantasma en el sistema" width="42" height="42">
+      <span><b>TrustWatch</b><small data-i18n="tagline">Comprobaciones de seguridad</small></span>
+    </a>
+    <nav class="top-actions">
+      <a class="site-link" href="https://www.unfantasmaenelsistema.com" target="_blank" rel="noopener noreferrer">unfantasmaenelsistema.com</a>
+      <button class="icon-btn" id="langBtn" type="button" data-i18n-title="toggle_lang">EN</button>
+      <button class="icon-btn" id="themeBtn" type="button" data-i18n-title="toggle_theme">☀️</button>
+    </nav>
+  </header>
 
-        <div id="tabContentSafe" data-tab-content="safe" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="url" id="urlInput" placeholder="Introduce la URL para comprobar (ej: https://tienda-falsa.com)"
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                       required>
-                <button id="searchButtonSafe" onclick="checkSafeUrl()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                    <span id="buttonTextSafe">Verificar URL</span>
-                    <div id="loaderSafe" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        
-        <div id="tabContentHeaders" data-tab-content="headers" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="url" id="headersInput" placeholder="Introduce la URL para escanear cabeceras (ej: https://facebook.com)"
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                       required>
-                <button id="searchButtonHeaders" onclick="checkSecurityHeaders()"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center">
-                    <span id="buttonTextHeaders">Escanear Cabeceras</span>
-                    <div id="loaderHeaders" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 hidden ml-2"></div>
-                </button>
-            </div>
-        </div>
-        <div id="results" class="space-y-4">
-            </div>
-        <p class="text-xs text-gray-400 mt-8 text-center">
-            Servicios externos gratuitos: Brechas (Proxy Vercel), Seguridad Web (Proxy Vercel/Google Safe Browsing), Cabeceras HTTP (Proxy Vercel/Node.js Fetch), IP (ipapi.co), DNS (Google Public DNS). Teléfono y Contraseñas (Client-side JS).
-            <span class="font-bold text-red-400">La disponibilidad de Dominio se verifica solo a nivel de formato por las restricciones de CORS/API Key. © www.unfantasmaenelsistema.com</span>
-        </p>
+  <main class="wrap">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="breaches"><span>📧</span><b data-i18n="tab_breaches">Brechas</b></button>
+      <button role="tab" data-tab="password"><span>🔑</span><b data-i18n="tab_password">Contraseñas</b></button>
+      <button role="tab" data-tab="url"><span>🛡️</span><b data-i18n="tab_url">URL segura</b></button>
+      <button role="tab" data-tab="headers"><span>🔒</span><b data-i18n="tab_headers">Cabeceras</b></button>
+      <button role="tab" data-tab="domain"><span>🌐</span><b data-i18n="tab_domain">Dominio</b></button>
+      <button role="tab" data-tab="dns"><span>📡</span><b data-i18n="tab_dns">DNS</b></button>
+      <button role="tab" data-tab="ip"><span>📍</span><b data-i18n="tab_ip">IP</b></button>
+      <button role="tab" data-tab="phone"><span>📱</span><b data-i18n="tab_phone">Teléfono</b></button>
     </div>
-    <script>
-        // --- CONSTANTES GLOBALES ---
-        
-        // ¡CAMBIO CLAVE! URL del proxy serverless para evitar el error CORS.
-        const PROXY_BREACHES_URL = "https://trust-watch.vercel.app/api/breaches?email=";
-        // ✅ URL del proxy para la comprobación de Navegación Segura
-        const PROXY_SAFE_URL = "https://trust-watch.vercel.app/api/safebrowsing"; 
-        // ✅ NUEVO: URL del proxy para el escaneo de cabeceras
-        const PROXY_HEADERS_URL = "https://trust-watch.vercel.app/api/headers"; 
 
-        const IP_API_URL = "https://ipapi.co/"; 
-        const GOOGLE_DNS_API_URL = "https://dns.google/resolve";
-        // --- ESTADO DE LA APLICACIÓN ---
-        let currentTab = 'email';
-
-        // --- FUNCIONES DE UTILIDAD GENERAL ---
-        /**
-         * Función auxiliar para capitalizar la primera letra de una cadena, manejando acrónimos.
-         */
-        function capitalize(s) {
-            if (s.toLowerCase() === 'ip') return 'IP';
-            return s.charAt(0).toUpperCase() + s.slice(1);
-        }
-
-        /**
-         * Cambia la pestaña visible y actualiza el estado de la aplicación.
-         * @param {string} tabName - 'email', 'phone', 'domain', 'ip', 'dns', 'password', 'safe' o 'headers'.
-         */
-        function changeTab(tabName) {
-            console.log(`[DEBUG] Intentando cambiar a la pestaña: ${tabName}`);
-            currentTab = tabName;
-                        
-            // 1. Ocultar todos los contenidos y desactivar botones
-            document.querySelectorAll('[data-tab-content]').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-                        
-            const resultsDiv = document.getElementById('results');
-            if (resultsDiv) {
-                resultsDiv.innerHTML = ''; // Limpiar resultados
-            }
-
-            // 2. Mostrar contenido y activar el botón correcto
-            // Se debe manejar 'Safe' y 'safe', y 'Headers' y 'headers'
-            const capitalizedName = (tabName === 'safe' || tabName === 'headers') ? capitalize(tabName) : capitalize(tabName); 
-            const contentDiv = document.getElementById(`tabContent${capitalizedName}`);
-            const buttonEl = document.getElementById(`tab${capitalizedName}`);
-            if (contentDiv) {
-                contentDiv.classList.remove('hidden');
-                console.log(`[DEBUG] Pestaña ${tabName} mostrada. ID del contenido: tabContent${capitalizedName}`);
-            } else {
-                console.warn(`[DOM Warning] No se encontró el contenido para la pestaña: tabContent${capitalizedName}`);
-            }
-                        
-            if (buttonEl) {
-                buttonEl.classList.add('active');
-            } else {
-                console.warn(`[DOM Warning] No se encontró el botón para la pestaña: tab${capitalizedName}`);
-            }
-        }
-
-        /**
-         * Muestra un mensaje en el área de resultados.
-         * @param {string} message - El HTML del mensaje.
-         * @param {string} classes - Clases de Tailwind para el estilo del contenedor.
-         */
-        function displayMessage(message, classes) {
-            const resultsDiv = document.getElementById('results');
-            if (resultsDiv) { // Verificación de nulidad para mayor seguridad
-                resultsDiv.innerHTML = `
-                    <div class="${classes} p-4 rounded-lg border-l-4 shadow-sm" role="alert">
-                        <p class="font-medium">${message}</p>
-                    </div>
-                `;
-            }
-        }
-
-        /**
-         * Copia el contenido de un elemento al portapapeles.
-         */
-        function copyToClipboard(elementId) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-                        
-            // Crea un input temporal para la selección
-            const tempInput = document.createElement('textarea');
-            tempInput.value = element.value || element.textContent; // Puede ser un input o un texto div
-            document.body.appendChild(tempInput);
-            tempInput.select();
-                        
-            try {
-                // Utiliza document.execCommand('copy') como fallback para entornos iFrame
-                document.execCommand('copy');
-                displayMessage('✅ ¡Copiado al portapapeles!', 'bg-blue-100 border-blue-400 text-blue-700');
-            } catch (err) {
-                console.error('Error al copiar:', err);
-                displayMessage('❌ Error al copiar al portapapeles.', 'bg-red-100 border-red-400 text-red-700');
-            }
-            document.body.removeChild(tempInput);
-        }
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE EMAIL (BRECHAS) ---
-        // ----------------------------------------------------------------------
-                
-        function isValidEmail(email) {
-            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            return re.test(String(email).toLowerCase());
-        }
-
-        async function checkBreaches() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput ? emailInput.value.trim() : '';
-            const searchButton = document.getElementById('searchButtonEmail');
-            const buttonText = document.getElementById('buttonTextEmail');
-            const loader = document.getElementById('loaderEmail');
-            document.getElementById('results').innerHTML = '';
-
-            if (!isValidEmail(email)) {
-                displayMessage("⚠️ Por favor, introduce una dirección de correo electrónico válida.", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                return;
-            }
-                        
-            if (searchButton) searchButton.disabled = true;
-            if (buttonText) buttonText.textContent = 'Buscando...';
-            if (loader) loader.classList.remove('hidden');
-
-            // APUNTA AL PROXY SERVERLESS PARA EVITAR CORS
-            const searchUrl = `${PROXY_BREACHES_URL}${encodeURIComponent(email)}`;
-            
-            try {
-                const response = await fetch(searchUrl, {
-                    method: 'GET',
-                    headers: { "Accept": "application/json" }
-                });
-                const data = await response.json();
-
-                if (response.status === 200) {
-                    // Caso 1: Brechas ENCONTRADAS (El proxy debe devolver el formato {"breaches": ["Sitio1", "Sitio2"]})
-                    if (data.breaches && Array.isArray(data.breaches) && data.breaches.length > 0) {
-                        displayBreaches(email, data.breaches);
-                    } 
-                    // Caso 2: Brechas NO ENCONTRADAS (El proxy debe devolver el formato {"Error":"No se ha encontrado"})
-                    else if (data.Error === "No se ha encontrado") { 
-                        displayMessage(`🎉 ¡Buenas noticias! El correo electrónico <span class="font-bold">${email}</span> NO ha sido encontrado en ninguna brecha conocida por XposedOrNot.`, 'bg-green-100 border-green-400 text-green-700');
-                    }
-                    // Caso 3: Fallback (El proxy devuelve algo inesperado o un array vacío sin el campo "Error")
-                    else {
-                        displayMessage(`🎉 ¡Buenas noticias! El correo electrónico <span class="font-bold">${email}</span> NO ha sido encontrado en ninguna brecha conocida por XposedOrNot.`, 'bg-green-100 border-green-400 text-green-700');
-                    }
-                } else {
-                    // Si el proxy falla o devuelve otro error (400, 500, etc.)
-                    const message = data.error || data.message || `Error ${response.status}: Ha ocurrido un error al consultar el proxy de la API.`;
-                    displayMessage(`❌ Error: ${message}`, 'bg-red-100 border-red-400 text-red-700');
-                }
-            } catch (error) {
-                console.error("Error en la solicitud Fetch (Email/Proxy):", error);
-                // Mensaje de error más descriptivo sobre el fallo del proxy
-                displayMessage(`❌ Error de Conexión. Fallo al contactar el servicio Proxy. Verifica la URL de PROXY_BREACHES_URL o el despliegue del proxy.`, 'bg-red-100 border-red-400 text-red-700');
-            } finally {
-                if (searchButton) searchButton.disabled = false;
-                if (buttonText) buttonText.textContent = 'Comprobar Brechas';
-                if (loader) loader.classList.add('hidden');
-            }
-        }
-        
-        function displayBreaches(email, breaches) {
-            const resultsDiv = document.getElementById('results');
-            let html = `
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-6" role="alert">
-                    <p class="font-bold text-lg">🚨 ¡ATENCIÓN! El correo <span class="font-extrabold">${email}</span> fue encontrado en ${breaches.length} brecha(s).</p>
-                    <p class="text-sm">Se recomienda encarecidamente cambiar la contraseña de inmediato y revisar si el mismo par de correo/contraseña ha sido utilizado en otros servicios.</p>
-                </div>
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Brechas Encontradas (Nombres de Sitios):</h2>
-                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <ul class="list-disc list-inside space-y-1 text-gray-800">
-                        ${breaches.map(name => `<li class="font-medium text-red-700">${name}</li>`).join('')}
-                    </ul>
-                </div>
-                <p class="text-sm text-gray-500 mt-4">
-                    **Nota:** Esta API pública solo devuelve los nombres de los sitios violados, no los detalles (fecha, tipos de datos expuestos).
-                    Para los detalles completos, se requiere el endpoint de 'breach-analytics', que probablemente necesita una API Key.
-                </p>
-            `;
-            if (resultsDiv) resultsDiv.innerHTML = html;
-        }
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE TELÉFONO (VALIDACIÓN Y SPAM CHECK) ---
-        // ----------------------------------------------------------------------
-        /**
-         * Valida y analiza un número de teléfono usando libphonenumber-js, y añade un enlace a un verificador de spam.
-         */
-        function checkPhone() {
-            const phoneInput = document.getElementById('phoneInput');
-            const number = phoneInput ? phoneInput.value.trim() : '';
-            const resultsDiv = document.getElementById('results');
-            if (resultsDiv) resultsDiv.innerHTML = '';
-            
-            if (number === '') {
-                displayMessage("⚠️ Por favor, introduce un número de teléfono.", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                return;
-            }
-
-            try {
-                // Intenta analizar el número. No se proporciona un país por defecto para forzar el formato E.164 (+CC)
-                const phoneNumber = libphonenumber.parsePhoneNumberFromString(number);
-
-                if (phoneNumber && phoneNumber.isValid()) {
-                    // Usamos el formato E.164 para el enlace de búsqueda (+521234567890), quitando el '+'
-                    const searchNumber = phoneNumber.format('E.164').replace('+', ''); 
-                    
-                    // Enlace a un servicio público (ej. Tellows para reputación de spam)
-                    const spamCheckUrl = `https://www.tellows.es/num/${searchNumber}`; 
-
-                    let html = `
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md mb-6" role="alert">
-                            <p class="font-bold text-lg">✅ ¡Validación Exitosa!</p>
-                            <p class="text-sm">El número de teléfono parece ser estructuralmente válido.</p>
-                        </div>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Detalles del Número:</h2>
-                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 space-y-2">
-                            <p><strong>Formato E.164:</strong> <span class="font-mono text-gray-800">${phoneNumber.format('E.164') || 'N/A'}</span></p>
-                            <p><strong>Código de País:</strong> ${phoneNumber.countryCallingCode} (<span class="font-medium">${phoneNumber.country}</span>)</p>
-                            <p><strong>Tipo de Número:</strong> <span class="font-medium">${phoneNumber.getType() ? capitalize(phoneNumber.getType()) : 'Desconocido'}</span></p>
-                            <p><strong>Formato Nacional:</strong> ${phoneNumber.formatNational() || 'N/A'}</p>
-                        </div>
-                        
-                        <div class="mt-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg shadow-md">
-                            <p class="font-bold">🚨 Verificación de Reputación (Spam/Riesgo):</p>
-                            <p class="text-sm mt-1">
-                                No se puede consultar una API de spam directamente. Haz clic en el siguiente enlace para verificar su reputación en un servicio externo:
-                            </p>
-                            <a href="${spamCheckUrl}" target="_blank" class="inline-flex items-center mt-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 py-2 px-4 rounded-lg transition duration-300">
-                                🔗 Consultar Reputación de Spam (${phoneNumber.format('E.164')})
-                            </a>
-                        </div>
-                        
-                        <p class="text-xs text-gray-400 mt-4 italic">Nota: Esta es una validación de formato (sintáctica y geográfica), no comprueba si el número está activo.</p>
-                    `;
-                    if (resultsDiv) resultsDiv.innerHTML = html;
-                } else {
-                    displayMessage(`❌ El número <span class="font-bold">${number}</span> no es un número de teléfono válido o no se pudo determinar su país. Asegúrate de incluir el código de país (ej. +34).`, 'bg-red-100 border-red-400 text-red-700');
-                }
-            } catch (e) {
-                console.error("Error al procesar el número:", e);
-                displayMessage(`❌ Error al procesar el número. Asegúrate de incluir el código de país (ej. +34).`, 'bg-red-100 border-red-400 text-red-700');
-            }
-        }
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE DOMINIO (INFORMACIÓN) ---
-        // ----------------------------------------------------------------------
-        function isValidDomain(domain) {
-            // Regex simple para dominios: no permite protocolos, paths, ni @
-            const re = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?$/;
-            return re.test(String(domain).toLowerCase());
-        }
-
-        /**
-         * Verifica solo la validez del formato del dominio, ya que la disponibilidad
-         * en tiempo real falla por CORS/API Key.
-         */
-        function checkDomainInfo() {
-            const domainInput = document.getElementById('domainInput');
-            const domain = domainInput ? domainInput.value.trim() : '';
-            // Desactivar el botón y el loader no son necesarios ya que no hay fetch
-            // pero lo dejamos por consistencia si se cambiara a un fetch en el futuro.
-            const searchButton = document.getElementById('searchButtonDomain');
-            if (searchButton) searchButton.disabled = true;
-            document.getElementById('results').innerHTML = '';
-
-            if (!isValidDomain(domain)) {
-                displayMessage("⚠️ Por favor, introduce un dominio válido (ej: google.com). No incluyas `http://` ni `www`.", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                if (searchButton) searchButton.disabled = false;
-                return;
-            }
-                        
-            // Simulación de resultado de validación de formato (Client-side)
-            const statusText = 'FORMATO VÁLIDO (Client-Side)';
-            const statusClass = 'bg-blue-100 border-blue-500 text-blue-700';
-            let html = `
-                <div class="${statusClass} border-l-4 p-4 rounded-lg shadow-md mb-6" role="alert">
-                    <p class="font-bold text-lg">🌐 Dominio: <span class="font-extrabold">${domain}</span></p>
-                    <p class="text-sm">Estado: <span class="font-bold">${statusText}</span></p>
-                </div>
-                <p class="p-4 bg-gray-50 text-gray-600 rounded-xl shadow-inner">
-                    ✅ El formato del dominio es estructuralmente correcto.
-                </p>
-                <div class="mt-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded-lg">
-                    <p class="font-semibold">⚠️ Nota Importante sobre Disponibilidad:</p>
-                    <p class="text-sm">La comprobación de disponibilidad o WHOIS de dominios en tiempo real fue desactivada debido a que fallaba constantemente por las restricciones de CORS/API Key de los servicios externos.</p>
-                    <p class="text-sm mt-1">Esta herramienta solo confirma que el *formato* del dominio es correcto. Para disponibilidad real, utiliza un registrador de dominios.</p>
-                </div>
-            `;
-            const resultsDiv = document.getElementById('results');
-            if (resultsDiv) resultsDiv.innerHTML = html;
-            if (searchButton) searchButton.disabled = false;
-        }
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE IP (GEOLOCALIZACIÓN) ---
-        // ----------------------------------------------------------------------
-        function isValidIP(ip) {
-            // Regex simple para IPv4 y la mayoría de IPv6
-            const ipv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-            const ipv6 = /^([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]{1,4}|:)$/;
-            return ip === '' || ipv4.test(ip) || ipv6.test(ip); // Permitir cadena vacía para la propia IP del usuario
-        }
-
-        async function checkIPGeoloc() {
-            const ipInput = document.getElementById('ipInput');
-            const ip = ipInput ? ipInput.value.trim() : '';
-            const searchButton = document.getElementById('searchButtonIP');
-            const buttonText = document.getElementById('buttonTextIP');
-            const loader = document.getElementById('loaderIP');
-            document.getElementById('results').innerHTML = '';
-            
-            if (!isValidIP(ip)) {
-                displayMessage("⚠️ Por favor, introduce una dirección IP válida (ej: 8.8.8.8).", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                return;
-            }
-
-            if (searchButton) searchButton.disabled = true;
-            if (buttonText) buttonText.textContent = 'Buscando...';
-            if (loader) loader.classList.remove('hidden');
-
-            // API: ipapi.co. Si se proporciona una IP, se añade a la URL/json. Si no, usa /json.
-            const searchUrl = ip ? `${IP_API_URL}${encodeURIComponent(ip)}/json/` : `${IP_API_URL}json/`; 
-             
-            try {
-                const response = await fetch(searchUrl, {
-                    method: 'GET',
-                    headers: { "Accept": "application/json" }
-                });
-                const data = await response.json();
-
-                if (response.ok && data.ip) { // Verifica si la respuesta es exitosa y tiene datos de IP
-                    displayIPInfo(data);
-                } else if (data.error) {
-                    displayMessage(`❌ Error de API: ${data.reason || 'No se pudo obtener la geolocalización de la IP.'}`, 'bg-red-100 border-red-400 text-red-700');
-                } else {
-                    displayMessage(`❌ Error ${response.status}: No se pudo obtener la geolocalización de la IP.`, 'bg-red-100 border-red-400 text-red-700');
-                }
-            } catch (error) {
-                console.error("Error en la solicitud Fetch (IP):", error);
-                displayMessage(`❌ Error de Conexión: Ha ocurrido un problema al conectar con el servicio de geolocalización.`, 'bg-red-100 border-red-400 text-red-700');
-            } finally {
-                if (searchButton) searchButton.disabled = false;
-                if (buttonText) buttonText.textContent = 'Geolocalizar IP';
-                if (loader) loader.classList.add('hidden');
-            }
-        }
-
-        /**
-         * Muestra los resultados de la geolocalización de la IP.
-         * @param {object} data - Objeto de datos de respuesta de ipapi.co.
-         */
-        function displayIPInfo(data) {
-            const resultsDiv = document.getElementById('results');
-            let html = `
-                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md mb-6" role="alert">
-                    <p class="font-bold text-lg">📍 Información de Geolocalización (API: ipapi.co)</p>
-                    <p class="text-sm">IP Verificada: <span class="font-extrabold">${data.ip}</span></p>
-                </div>
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Detalles Geográficos y de Red:</h2>
-                <div class="bg-white p-4 rounded-xl shadow border border-gray-200 space-y-2">
-                    <p><strong>País:</strong> ${data.country_name || 'N/A'} (${data.country_code || 'N/A'})</p>
-                    <p><strong>Ciudad:</strong> ${data.city || 'N/A'}, ${data.region || 'N/A'}</p>
-                    <p><strong>Lat/Lon:</strong> ${data.latitude || 'N/A'} / ${data.longitude || 'N/A'}</p>
-                    <p><strong>Zona Horaria:</strong> ${data.timezone || 'N/A'}</p>
-                    <p><strong>Organización (ISP):</strong> ${data.org || 'N/A'}</p>
-                    <p><strong>ASN:</strong> ${data.asn || 'N/A'}</p>
-                    <p><strong>Moneda:</strong> ${data.currency || 'N/A'}</p>
-                </div>
-                <p class="text-xs text-gray-400 mt-4 italic">
-                    Para la IP del usuario, el resultado es la IP pública con la que navegas. 
-                    Si es un VPN/Proxy, mostrará la ubicación de ese servicio.
-                </p>
-            `;
-            if (resultsDiv) resultsDiv.innerHTML = html;
-        }
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE DNS LOOKUP ---
-        // ----------------------------------------------------------------------
-        
-        async function checkDnsRecords() {
-            const dnsInput = document.getElementById('dnsInput');
-            const dnsTypeSelect = document.getElementById('dnsTypeSelect');
-            const domain = dnsInput ? dnsInput.value.trim() : '';
-            const recordType = dnsTypeSelect ? dnsTypeSelect.value : 'A';
-            
-            const searchButton = document.getElementById('searchButtonDns');
-            const buttonText = document.getElementById('buttonTextDns');
-            const loader = document.getElementById('loaderDns');
-            
-            document.getElementById('results').innerHTML = '';
-
-            if (!isValidDomain(domain)) {
-                displayMessage("⚠️ Por favor, introduce un dominio válido (ej: ejemplo.com).", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                return;
-            }
-
-            if (searchButton) searchButton.disabled = true;
-            if (buttonText) buttonText.textContent = 'Buscando...';
-            if (loader) loader.classList.remove('hidden');
-
-            // API de Google Public DNS: /resolve?name=domain&type=type
-            const searchUrl = `${GOOGLE_DNS_API_URL}?name=${encodeURIComponent(domain)}&type=${recordType}`; 
-
-            try {
-                const response = await fetch(searchUrl, {
-                    method: 'GET',
-                    headers: { "Accept": "application/json" }
-                });
-                const data = await response.json();
-
-                if (response.ok && data.Status === 0) { // Status 0 significa éxito
-                    displayDnsRecords(domain, recordType, data);
-                } else if (data.Status === 3) { // NXDOMAIN
-                    displayMessage(`⚠️ El dominio <span class="font-bold">${domain}</span> existe, pero no se encontró un registro DNS de tipo **${recordType}** (Status 3: NXDOMAIN).`, 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                } else {
-                    const errorReason = data.Comment || `Status ${data.Status}`;
-                    displayMessage(`❌ Error al consultar DNS para ${domain} (${recordType}). Razón: ${errorReason}`, 'bg-red-100 border-red-400 text-red-700');
-                }
-            } catch (error) {
-                console.error("Error en la solicitud Fetch (DNS):", error);
-                displayMessage(`❌ Error de Conexión: Ha ocurrido un problema al conectar con el servicio de DNS Lookup.`, 'bg-red-100 border-red-400 text-red-700');
-            } finally {
-                if (searchButton) searchButton.disabled = false;
-                if (buttonText) buttonText.textContent = 'Buscar Registros DNS';
-                if (loader) loader.classList.add('hidden');
-            }
-        }
-
-        /**
-         * Muestra los registros DNS en la sección de resultados.
-         * @param {string} domain - Dominio consultado.
-         * @param {string} recordType - Tipo de registro.
-         * @param {object} data - Objeto de datos de respuesta de la API de Google DNS.
-         */
-        function displayDnsRecords(domain, recordType, data) {
-            const resultsDiv = document.getElementById('results');
-            const answer = data.Answer;
-
-            let html = `
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md mb-6" role="alert">
-                    <p class="font-bold text-lg">📡 Registros DNS Encontrados</p>
-                    <p class="text-sm">Dominio: <span class="font-extrabold">${domain}</span> | Tipo de Registro: <span class="font-extrabold">${recordType}</span></p>
-                </div>
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Resultados:</h2>
-            `;
-
-            if (answer && answer.length > 0) {
-                html += `
-                    <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-xl shadow border border-gray-200">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="py-2 px-4 border-b text-left text-sm font-semibold text-gray-600">Nombre</th>
-                                <th class="py-2 px-4 border-b text-left text-sm font-semibold text-gray-600">Tipo</th>
-                                <th class="py-2 px-4 border-b text-left text-sm font-semibold text-gray-600">TTL (seg)</th>
-                                <th class="py-2 px-4 border-b text-left text-sm font-semibold text-gray-600">Datos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                answer.forEach(record => {
-                    // Formato especial para registros MX (Priority + Target)
-                    const recordData = (recordType === 'MX') 
-                        ? (record.data.includes(' ') ? record.data.replace(' ', ' (Prioridad: ') + ')' : record.data)
-                        : record.data;
-
-                    html += `
-                        <tr class="hover:bg-gray-50 transition duration-150">
-                            <td class="py-2 px-4 border-b text-sm text-gray-800 font-mono">${record.name}</td>
-                            <td class="py-2 px-4 border-b text-sm text-gray-600">${record.type}</td>
-                            <td class="py-2 px-4 border-b text-sm text-gray-600">${record.TTL}</td>
-                            <td class="py-2 px-4 border-b text-sm text-gray-800 font-mono break-all">${recordData}</td>
-                        </tr>
-                    `;
-                });
-                html += `
-                        </tbody>
-                    </table>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg">
-                        <p class="font-semibold">⚠️ No se encontraron registros de tipo ${recordType} para el dominio ${domain}.</p>
-                    </div>
-                `;
-            }
-            if (resultsDiv) resultsDiv.innerHTML = html;
-        }
-
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE CONTRASEÑA (GENERADOR/FUERZA) ---
-        // ----------------------------------------------------------------------
-
-        /**
-         * Genera una contraseña basada en los parámetros seleccionados por el usuario.
-         */
-        function generatePassword() {
-            const length = parseInt(document.getElementById('passLength').value);
-            const includeUpper = document.getElementById('passUppercase').checked;
-            const includeLower = document.getElementById('passLowercase').checked;
-            const includeNumbers = document.getElementById('passNumbers').checked;
-            const includeSymbols = document.getElementById('passSymbols').checked;
-
-            let charset = "";
-            let generatedPassword = "";
-
-            // Definición de caracteres
-            const CHARS = {
-                UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                LOWER: "abcdefghijklmnopqrstuvwxyz",
-                NUMBERS: "0123456789",
-                SYMBOLS: "!@#$%^&*()_+~`|}{[]:;?><,./-="
-            };
-
-            if (includeUpper) charset += CHARS.UPPER;
-            if (includeLower) charset += CHARS.LOWER;
-            if (includeNumbers) charset += CHARS.NUMBERS;
-            if (includeSymbols) charset += CHARS.SYMBOLS;
-
-            // Asegurar al menos una opción esté seleccionada
-            if (charset === "") {
-                displayMessage('⚠️ Debes seleccionar al menos un tipo de carácter para generar la contraseña.', 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                document.getElementById('generatedPassword').value = '';
-                return;
-            }
-
-            // Generar la contraseña
-            for (let i = 0, n = charset.length; i < length; ++i) {
-                generatedPassword += charset.charAt(Math.floor(Math.random() * n));
-            }
-
-            document.getElementById('generatedPassword').value = generatedPassword;
-            document.getElementById('results').innerHTML = ''; // Limpiar resultados de la pestaña de fuerza si los hubiera
-            displayMessage('✅ Contraseña generada con éxito. ¡No la olvides!', 'bg-blue-100 border-blue-400 text-blue-700');
-        }
-
-        /**
-         * Evalúa la fuerza de la contraseña y actualiza la barra de progreso.
-         * (Implementación básica de evaluación)
-         */
-        function checkPasswordStrength() {
-            const password = document.getElementById('passwordStrengthInput').value;
-            const strengthIndicator = document.getElementById('strengthIndicator');
-            const strengthText = document.getElementById('strengthText');
-            
-            let score = 0;
-            let percent = 0;
-            let text = 'Muy Débil 😟';
-            let color = 'bg-red-500';
-
-            const len = password.length;
-            const hasUpper = /[A-Z]/.test(password);
-            const hasLower = /[a-z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-            const hasSymbol = /[^A-Za-z0-9]/.test(password);
-            const requirements = [hasUpper, hasLower, hasNumber, hasSymbol].filter(Boolean).length;
-
-            if (len >= 8) score += 20;
-            if (len >= 12) score += 20;
-            
-            // Puntuación por cumplir requisitos de caracteres
-            if (requirements === 2) score += 10;
-            if (requirements === 3) score += 20;
-            if (requirements === 4) score += 40;
-
-            // Ajustar el puntaje máximo a 100
-            percent = Math.min(score, 100);
-
-            // Determinar texto y color
-            if (percent < 30) {
-                text = 'Muy Débil 😟';
-                color = 'bg-red-500';
-            } else if (percent < 60) {
-                text = 'Débil 😕';
-                color = 'bg-orange-500';
-            } else if (percent < 80) {
-                text = 'Mediana 😐';
-                color = 'bg-yellow-500';
-            } else if (percent < 100) {
-                text = 'Fuerte 😊';
-                color = 'bg-green-500';
-            } else {
-                text = '¡Muy Fuerte! 😎';
-                color = 'bg-green-700';
-            }
-            
-            if (len === 0) {
-                percent = 0;
-                text = '';
-            }
-
-            // Actualizar la interfaz
-            strengthIndicator.style.width = `${percent}%`;
-            strengthIndicator.className = `h-2 rounded-full transition-all duration-500 ${color}`;
-            strengthText.textContent = text;
-            document.getElementById('results').innerHTML = ''; // Limpiar resultados
-
-            if (len > 0) {
-                 displayStrengthMessage(percent, text);
-            }
-        }
-
-        function displayStrengthMessage(percent, text) {
-            const resultsDiv = document.getElementById('results');
-            if (!resultsDiv) return;
-
-            let messageClass = '';
-            let messageHtml = '';
-
-            if (percent < 60) {
-                messageClass = 'bg-red-100 border-red-500 text-red-700';
-                messageHtml = `
-                    <p class="font-bold text-lg">🚨 ¡Contraseña ${text}!</p>
-                    <p class="text-sm">Se recomienda que la longitud sea de al menos 12 caracteres y que incluya una combinación de mayúsculas, minúsculas, números y símbolos.</p>
-                `;
-            } else if (percent < 80) {
-                 messageClass = 'bg-yellow-100 border-yellow-500 text-yellow-700';
-                messageHtml = `
-                    <p class="font-bold text-lg">⚠️ Contraseña ${text}.</p>
-                    <p class="text-sm">Considera aumentar la longitud a 16 o más caracteres para mayor seguridad.</p>
-                `;
-            } else {
-                 messageClass = 'bg-green-100 border-green-500 text-green-700';
-                messageHtml = `
-                    <p class="font-bold text-lg">✅ ¡Contraseña ${text}!</p>
-                    <p class="text-sm">Excelente seguridad. Recuerda usar esta contraseña solo en un lugar.</p>
-                `;
-            }
-            
-            // Reutiliza la función displayMessage, pero con el HTML personalizado
-            resultsDiv.innerHTML = `
-                <div class="${messageClass} p-4 rounded-lg border-l-4 shadow-sm" role="alert">
-                    ${messageHtml}
-                </div>
-            `;
-        }
-
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE SEGURIDAD WEB (GOOGLE SAFE BROWSING) ---
-        // ----------------------------------------------------------------------
-
-        function isValidUrl(url) {
-            try {
-                // Utiliza la API nativa de URL para una verificación estricta
-                new URL(url);
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }
-
-        async function checkSafeUrl() {
-            const urlInput = document.getElementById('urlInput');
-            const url = urlInput ? urlInput.value.trim() : '';
-            const searchButton = document.getElementById('searchButtonSafe');
-            const buttonText = document.getElementById('buttonTextSafe');
-            const loader = document.getElementById('loaderSafe');
-            document.getElementById('results').innerHTML = '';
-
-            if (!isValidUrl(url)) {
-                displayMessage("⚠️ Por favor, introduce una URL válida (ej: https://www.tienda.com).", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                return;
-            }
-            
-            if (searchButton) searchButton.disabled = true;
-            if (buttonText) buttonText.textContent = 'Verificando...';
-            if (loader) loader.classList.remove('hidden');
-
-            try {
-                // APUNTA AL PROXY SERVERLESS (api/safebrowsing.js)
-                const response = await fetch(PROXY_SAFE_URL, {
-                    method: 'POST', // Usamos POST para enviar la URL en el cuerpo
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "Accept": "application/json" 
-                    },
-                    body: JSON.stringify({ url: url }) // Enviamos la URL en el cuerpo de la petición
-                });
-                const data = await response.json();
-
-                if (response.ok && data.status === "SAFE") {
-                    // CASO 1: URL Segura
-                    displayMessage(`✅ ¡URL Segura! La URL <span class="font-bold">${url}</span> NO fue clasificada como maliciosa por Google Safe Browsing.`, 'bg-green-100 border-green-400 text-green-700');
-                } else if (response.ok && data.status === "DANGEROUS") {
-                    // CASO 2: URL Peligrosa
-                    displayDangerousUrl(url, data.matches);
-                } else {
-                    // CASO 3: Error del Proxy o de la API de Google
-                    const message = data.error || `Error ${response.status}: Error en la verificación de seguridad.`;
-                    displayMessage(`❌ Error: ${message}`, 'bg-red-100 border-red-400 text-red-700');
-                }
-            } catch (error) {
-                console.error("Error en la solicitud Fetch (SafeBrowsing/Proxy):", error);
-                displayMessage(`❌ Error de Conexión. Fallo al contactar el servicio Proxy para seguridad web.`, 'bg-red-100 border-red-400 text-red-700');
-            } finally {
-                if (searchButton) searchButton.disabled = false;
-                if (buttonText) buttonText.textContent = 'Verificar URL';
-                if (loader) loader.classList.add('hidden');
-            }
-        }
-
-        function displayDangerousUrl(url, matches) {
-            const resultsDiv = document.getElementById('results');
-            let threats = matches.map(match => `
-                <li class="font-medium text-red-700">
-                    Tipo de Amenaza: <strong>${capitalize(match.threatType.replace(/_/g, ' ').toLowerCase())}</strong> 
-                    (Plataforma: ${match.platformType.replace(/_/g, ' ')})
-                </li>
-            `).join('');
-
-            let html = `
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-6" role="alert">
-                    <p class="font-bold text-lg">🚨 ¡ATENCIÓN! La URL <span class="font-extrabold">${url}</span> es PELIGROSA.</p>
-                    <p class="text-sm">Google Safe Browsing ha clasificado este sitio como malicioso o de ingeniería social (phishing). **NO accedas ni introduzcas credenciales.**</p>
-                </div>
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Detalles de la Amenaza:</h2>
-                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <ul class="list-disc list-inside space-y-2 text-gray-800">
-                        ${threats}
-                    </ul>
-                </div>
-                <p class="text-sm text-gray-500 mt-4">
-                    **Clasificaciones:** MALWARE (Software malicioso), SOCIAL_ENGINEERING (Phishing/Engaño), UNWANTED_SOFTWARE (Software no deseado).
-                </p>
-            `;
-            if (resultsDiv) resultsDiv.innerHTML = html;
-        }
-
-        // ----------------------------------------------------------------------
-        // --- FUNCIONES DE CABECERAS HTTP (SECURITY HEADERS) ---
-        // ----------------------------------------------------------------------
-
-        async function checkSecurityHeaders() {
-            const headersInput = document.getElementById('headersInput');
-            const url = headersInput ? headersInput.value.trim() : '';
-            const searchButton = document.getElementById('searchButtonHeaders');
-            const buttonText = document.getElementById('buttonTextHeaders');
-            const loader = document.getElementById('loaderHeaders');
-            document.getElementById('results').innerHTML = '';
-
-            if (!isValidUrl(url)) {
-                displayMessage("⚠️ Por favor, introduce una URL válida (ej: https://www.ejemplo.com).", 'bg-yellow-100 border-yellow-400 text-yellow-700');
-                return;
-            }
-            
-            if (searchButton) searchButton.disabled = true;
-            if (buttonText) buttonText.textContent = 'Escaneando...';
-            if (loader) loader.classList.remove('hidden');
-
-            try {
-                // Usamos GET y la URL como query parameter
-                const searchUrl = `${PROXY_HEADERS_URL}?url=${encodeURIComponent(url)}`;
-                
-                const response = await fetch(searchUrl, {
-                    method: 'GET',
-                    headers: { "Accept": "application/json" }
-                });
-                const data = await response.json();
-
-                if (response.ok && data.results) {
-                    displayHeadersResults(data);
-                } else {
-                    const message = data.error || `Error ${response.status}: Error al escanear cabeceras.`;
-                    displayMessage(`❌ Error: ${message}`, 'bg-red-100 border-red-400 text-red-700');
-                }
-            } catch (error) {
-                console.error("Error en la solicitud Fetch (Headers/Proxy):", error);
-                displayMessage(`❌ Error de Conexión. Fallo al contactar el servicio Proxy para cabeceras HTTP.`, 'bg-red-100 border-red-400 text-red-700');
-            } finally {
-                if (searchButton) searchButton.disabled = false;
-                if (buttonText) buttonText.textContent = 'Escanear Cabeceras';
-                if (loader) loader.classList.add('hidden');
-            }
-        }
-
-        function displayHeadersResults(data) {
-            const resultsDiv = document.getElementById('results');
-            const urlChecked = data.url;
-            const score = data.score;
-            const results = data.results;
-
-            let scoreClass = 'bg-red-500';
-            let scoreText = 'BAJA';
-
-            if (score >= 90) { scoreClass = 'bg-green-600'; scoreText = 'EXCELENTE'; }
-            else if (score >= 70) { scoreClass = 'bg-yellow-600'; scoreText = 'BUENA'; }
-            else if (score >= 50) { scoreClass = 'bg-orange-500'; scoreText = 'MEDIA'; }
-            // Si es menor de 50, se queda en roja.
-
-            let html = `
-                <div class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-lg shadow-md mb-6" role="alert">
-                    <p class="font-bold text-lg">🔒 Escaneo de Cabeceras HTTP</p>
-                    <p class="text-sm">URL Verificada: <span class="font-extrabold">${urlChecked}</span></p>
-                </div>
-                
-                <div class="p-4 rounded-lg shadow-lg mb-6 flex flex-col sm:flex-row items-center justify-between border border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-700">Puntuación de Seguridad:</h2>
-                    <div class="flex items-center mt-2 sm:mt-0">
-                        <span class="text-3xl font-bold mr-3">${score}%</span>
-                        <span class="py-1 px-3 rounded-full text-white font-semibold text-sm ${scoreClass}">${scoreText}</span>
-                    </div>
-                </div>
-
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Detalles de las Cabeceras:</h2>
-                <div class="space-y-4">
-            `;
-
-            // Función auxiliar para colorear la fila
-            const getRowColor = (status) => {
-                if (status === 'PRESENT') return 'bg-green-50 text-green-700 border-green-200';
-                if (status === 'MISSING') return 'bg-red-50 text-red-700 border-red-200';
-                if (status === 'MISCONFIGURED') return 'bg-orange-50 text-orange-700 border-orange-200';
-                return 'bg-gray-50 text-gray-600 border-gray-200';
-            };
-            
-            // Función auxiliar para iconos
-            const getIcon = (status) => {
-                if (status === 'PRESENT') return '✅';
-                if (status === 'MISSING') return '❌';
-                if (status === 'MISCONFIGURED') return '⚠️';
-                return 'ℹ️';
-            };
-
-            // Recorrer los resultados
-            for (const [key, result] of Object.entries(results)) {
-                html += `
-                    <div class="p-4 rounded-xl shadow-sm ${getRowColor(result.status)} border">
-                        <p class="font-bold text-lg">${getIcon(result.status)} ${key}</p>
-                        <p class="text-sm mt-1">
-                            ${result.status === 'MISSING' 
-                                ? '<span class="font-bold">ESTADO: FALTANTE.</span> Esto reduce la seguridad del sitio.'
-                                : result.status === 'MISCONFIGURED' 
-                                ? '<span class="font-bold">ESTADO: MAL CONFIGURADA.</span> Se recomienda corrección inmediata.'
-                                : result.status === 'OPTIONAL_MISSING'
-                                ? '<span class="font-bold">ESTADO: OPCIONAL FALTANTE.</span> Recomendado para máxima seguridad.'
-                                : '<span class="font-bold">ESTADO: CORRECTO.</span>'
-                            }
-                        </p>
-                        <p class="text-xs italic mt-1">${result.description}</p>
-                        <div class="mt-2 p-2 bg-white rounded border border-gray-300 overflow-x-auto text-sm font-mono text-gray-800">
-                            ${result.value}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            html += `</div>`;
-            if (resultsDiv) resultsDiv.innerHTML = html;
-        }
-
-
-        // ----------------------------------------------------------------------
-        // --- INICIALIZACIÓN ---
-        // ----------------------------------------------------------------------
-        // Función para asegurar que al cargar la página se activa la primera pestaña
-        document.addEventListener('DOMContentLoaded', () => {
-            changeTab('email');
-            // Inicializa la fuerza de la contraseña en 0 al cargar
-            document.getElementById('strengthIndicator').style.width = '0%';
-            document.getElementById('strengthText').textContent = '';
-        });
-
-    </script>
+    <!-- Brechas -->
+    <section class="panel" data-panel="breaches" role="tabpanel">
+      <h1 data-i18n="breaches_title">¿Tu correo está en alguna filtración?</h1>
+      <p class="lead" data-i18n="breaches_lead">Consulta las brechas conocidas en las que aparece una dirección, con la fecha, el tamaño y qué datos se filtraron.</p>
+      <form class="row" id="breachesForm">
+        <input id="emailInput" type="email" required autocomplete="email" data-i18n-placeholder="email_ph" placeholder="tu@correo.com">
+        <button class="btn-primary" type="submit" data-i18n="check">Comprobar</button>
+      </form>
+      <p class="note" data-i18n="breaches_note">El correo se envía a XposedOrNot, un servicio gratuito y de código abierto. No se guarda en TrustWatch.</p>
+    </section>
+
+    <!-- Contraseñas -->
+    <section class="panel" data-panel="password" role="tabpanel" hidden>
+      <h1 data-i18n="password_title">Contraseñas</h1>
+      <div class="grid-2">
+        <div class="box">
+          <h2 data-i18n="gen_title">Generador seguro</h2>
+          <div class="gen-opts">
+            <label class="len"><span data-i18n="length">Longitud</span> <output id="lenOut">16</output>
+              <input id="passLength" type="range" min="8" max="64" value="16"></label>
+            <label class="check"><input type="checkbox" id="optUpper" checked> <span data-i18n="opt_upper">Mayúsculas</span></label>
+            <label class="check"><input type="checkbox" id="optLower" checked> <span data-i18n="opt_lower">Minúsculas</span></label>
+            <label class="check"><input type="checkbox" id="optDigits" checked> <span data-i18n="opt_digits">Números</span></label>
+            <label class="check"><input type="checkbox" id="optSymbols" checked> <span data-i18n="opt_symbols">Símbolos</span></label>
+            <label class="check"><input type="checkbox" id="optAmbig"> <span data-i18n="opt_ambig">Sin caracteres confusos (l, 1, O, 0…)</span></label>
+          </div>
+          <div class="row">
+            <input id="genOutput" class="mono" readonly aria-label="Contraseña generada">
+            <button class="btn-ghost" type="button" id="copyBtn" data-i18n="copy">Copiar</button>
+            <button class="btn-primary" type="button" id="genBtn" data-i18n="generate">Generar</button>
+          </div>
+          <p class="note" data-i18n="gen_note">Se genera en tu navegador con crypto.getRandomValues; no sale de tu equipo.</p>
+        </div>
+        <div class="box">
+          <h2 data-i18n="strength_title">¿Es fuerte tu contraseña?</h2>
+          <div class="row">
+            <input id="pwInput" type="password" autocomplete="off" data-i18n-placeholder="pw_ph" placeholder="Escribe una contraseña" spellcheck="false">
+            <button class="btn-ghost" type="button" id="showPw" data-i18n="show">Ver</button>
+          </div>
+          <div class="meter" aria-hidden="true"><div id="meterBar"></div></div>
+          <div id="strengthOut" class="strength" aria-live="polite"></div>
+          <button class="btn-primary" type="button" id="pwnedBtn" data-i18n="pwned_btn">¿Ha aparecido en filtraciones?</button>
+          <p class="note" data-i18n="pwned_note">Comprobación anónima con Have I Been Pwned: solo se envían los 5 primeros caracteres del hash SHA-1, nunca la contraseña.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- URL segura -->
+    <section class="panel" data-panel="url" role="tabpanel" hidden>
+      <h1 data-i18n="url_title">¿Es segura esta web?</h1>
+      <p class="lead" data-i18n="url_lead">Comprueba si Google Safe Browsing tiene la URL catalogada como malware, phishing o software no deseado.</p>
+      <form class="row" id="urlForm">
+        <input id="urlInput" type="text" inputmode="url" required data-i18n-placeholder="url_ph" placeholder="https://tienda-sospechosa.com" spellcheck="false">
+        <button class="btn-primary" type="submit" data-i18n="check">Comprobar</button>
+      </form>
+      <p class="note" data-i18n="url_note">Que no aparezca no garantiza que sea segura: las webs de phishing nuevas tardan horas en catalogarse. No pulses enlaces de mensajes que no esperabas.</p>
+    </section>
+
+    <!-- Cabeceras -->
+    <section class="panel" data-panel="headers" role="tabpanel" hidden>
+      <h1 data-i18n="headers_title">Cabeceras de seguridad HTTP</h1>
+      <p class="lead" data-i18n="headers_lead">Revisa si una web envía HSTS, CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy y Permissions-Policy.</p>
+      <form class="row" id="headersForm">
+        <input id="headersInput" type="text" inputmode="url" required data-i18n-placeholder="headers_ph" placeholder="https://www.ejemplo.com" spellcheck="false">
+        <button class="btn-primary" type="submit" data-i18n="scan">Analizar</button>
+      </form>
+    </section>
+
+    <!-- Dominio -->
+    <section class="panel" data-panel="domain" role="tabpanel" hidden>
+      <h1 data-i18n="domain_title">Información de un dominio</h1>
+      <p class="lead" data-i18n="domain_lead">Registro (RDAP): fecha de alta, caducidad, registrador y estado. Y seguridad del correo: MX, SPF y DMARC. Un dominio recién registrado es una señal típica de estafa.</p>
+      <form class="row" id="domainForm">
+        <input id="domainInput" type="text" required data-i18n-placeholder="domain_ph" placeholder="ejemplo.com" spellcheck="false">
+        <button class="btn-primary" type="submit" data-i18n="check">Comprobar</button>
+      </form>
+    </section>
+
+    <!-- DNS -->
+    <section class="panel" data-panel="dns" role="tabpanel" hidden>
+      <h1 data-i18n="dns_title">Consulta DNS</h1>
+      <form class="row" id="dnsForm">
+        <input id="dnsInput" type="text" required data-i18n-placeholder="domain_ph" placeholder="ejemplo.com" spellcheck="false">
+        <select id="dnsType" aria-label="Tipo de registro">
+          <option value="A">A</option><option value="AAAA">AAAA</option><option value="MX">MX</option>
+          <option value="TXT">TXT</option><option value="NS">NS</option><option value="CNAME">CNAME</option>
+          <option value="SOA">SOA</option><option value="CAA">CAA</option>
+        </select>
+        <button class="btn-primary" type="submit" data-i18n="lookup">Consultar</button>
+      </form>
+      <p class="note" data-i18n="dns_note">Resuelve con Google Public DNS (DNS sobre HTTPS) e indica si la respuesta está validada con DNSSEC.</p>
+    </section>
+
+    <!-- IP -->
+    <section class="panel" data-panel="ip" role="tabpanel" hidden>
+      <h1 data-i18n="ip_title">Geolocalización de una IP</h1>
+      <form class="row" id="ipForm">
+        <input id="ipInput" type="text" data-i18n-placeholder="ip_ph" placeholder="8.8.8.8 (vacío = tu IP)" spellcheck="false">
+        <button class="btn-primary" type="submit" data-i18n="locate">Localizar</button>
+      </form>
+      <p class="note" data-i18n="ip_note">Datos de ipapi.co. La ubicación de una IP es aproximada (ciudad del proveedor), nunca una dirección.</p>
+    </section>
+
+    <!-- Teléfono -->
+    <section class="panel" data-panel="phone" role="tabpanel" hidden>
+      <h1 data-i18n="phone_title">Analizar un número de teléfono</h1>
+      <form class="row" id="phoneForm">
+        <input id="phoneInput" type="tel" required data-i18n-placeholder="phone_ph" placeholder="+34 600 123 456" spellcheck="false">
+        <button class="btn-primary" type="submit" data-i18n="analyze">Analizar</button>
+      </form>
+      <p class="note" data-i18n="phone_note">Se analiza en tu navegador (país, tipo de línea y formato). No dice si el número está activo; para su reputación te enlazamos a servicios de denuncias.</p>
+    </section>
+
+    <div id="results" class="results" aria-live="polite"></div>
+  </main>
+
+  <footer class="foot">
+    <p data-i18n="footer_services">Servicios usados: XposedOrNot (brechas), Have I Been Pwned (contraseñas, anónimo), Google Safe Browsing y proxy propio en Vercel (URL y cabeceras), RDAP (dominios), Google Public DNS, ipapi.co. Teléfono y generador funcionan sin conexión.</p>
+    <p>
+      <a href="https://www.unfantasmaenelsistema.com" target="_blank" rel="noopener noreferrer">Un fantasma en el sistema</a> ·
+      <a href="https://github.com/unfantasmaenelsistema/TrustWatch" target="_blank" rel="noopener noreferrer" data-i18n="source">Código</a> · MIT
+    </p>
+  </footer>
+
+  <script src="js/libphonenumber.max.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
-
-
-
-
